@@ -15,34 +15,20 @@ PINECONE_REGION = os.environ.get("PINECONE_REGION") or "us-east-1"
 MINILM_ENDPOINT = os.environ.get("MINILM_ENDPOINT") or "minilm-demo"
 LLM_ENDPOINT = os.environ.get("LLM_ENDPOINT") or "flan-t5-demo"
 
-# --------------------------
-# SageMaker session & role
-# --------------------------
+
 role = sagemaker.get_execution_role()
 
-# --------------------------
-# Initialize LLM endpoint
-# --------------------------
-# LLM endpoint already deploy
 llm_predictor = sagemaker.predictor.Predictor(endpoint_name=LLM_ENDPOINT)
 
-# --------------------------
-# Initialize MiniLM encoder endpoint
-# --------------------------
 
 encoder_predictor = sagemaker.predictor.Predictor(endpoint_name=MINILM_ENDPOINT)
 
-# --------------------------
-# Pinecone client & index
-# --------------------------
 pc = Pinecone(api_key=PINECONE_API_KEY)
 spec = ServerlessSpec(cloud=PINECONE_CLOUD, region=PINECONE_REGION)
 index_name = "retrieval-augmentation-aws"
 index = pc.Index(index_name)
 
-# --------------------------
-# Prompt template
-# --------------------------
+
 prompt_template = """Answer the following QUESTION based on the CONTEXT
 given. If you do not know the answer and the CONTEXT doesn't
 contain the answer truthfully say "I don't know".
@@ -56,9 +42,6 @@ QUESTION:
 ANSWER:
 """
 
-# --------------------------
-# Utility functions
-# --------------------------
 def embed_docs(docs: List[str]) -> List[List[float]]:
     """
     Get embeddings for a list of documents using the MiniLM endpoint
@@ -95,9 +78,6 @@ def rag_query(question: str) -> str:
     out = llm_predictor.predict({"inputs": text_input})
     return out[0]["generated_text"]
 
-# --------------------------
-# Flask app
-# --------------------------
 app = Flask(__name__)
 
 @app.route("/query", methods=["POST"])
